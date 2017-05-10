@@ -1,3 +1,5 @@
+// Arduino 1.0.6.Work
+
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>

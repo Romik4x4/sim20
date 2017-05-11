@@ -5,34 +5,39 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-// If using software SPI (the default case):
 #define OLED_MOSI   9
 #define OLED_CLK   10
 #define OLED_DC    11
 #define OLED_CS    12
 #define OLED_RESET 13
 Adafruit_SSD1306 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
+
 #include <SoftwareSerial.h>
-#include "U8glib.h"
 
-U8GLIB_SSD1306_128X64 u8g(10,9,12,11,13); // Arduino Fio
+SoftwareSerial mySerial(3,2); // RX-3, TX-2
 
-SoftwareSerial mySerial(3, 2); // RX, TX
-
-const int ledPin =  13;      // the number of the LED pin
-
-int ledState = LOW;             // ledState used to set the LED
-long previousMillis = 0;        // will store last time LED was updated
-long interval = 100;            // interval at which to blink (milliseconds)
+long previousMillis = 0;        
+long interval = 100;            
 
 void setup() {
 
-  pinMode(ledPin, OUTPUT);
-  mySerial.begin(9600);
-  mySerial.print("AT+SRDSEND=255,\"");
-  mySerial.print("Start ... SIM20 Module ... 9600");
-  mySerial.println("\"");
- 
+  pinMode(8,INPUT); // Главная кнопка
+  pinMode(5,INPUT);
+  pinMode(4,INPUT);
+
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
+  display.clearDisplay();
+  display.display();
+
+  mySerial.begin(115200);
+  // mySerial.println("AT+SRDUART=2,0");
+
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.print("SIM20 Module.");
+  display.display();
+
 }
 
 void loop()
@@ -43,27 +48,36 @@ void loop()
   if (currentMillis - previousMillis > interval) {
     previousMillis = currentMillis;
 
-  u8g.firstPage();  
-  do {
-    draw();
-  } while( u8g.nextPage() );
-  
-    mySerial.print("AT+SRDSEND=255,\"");
+    mySerial.print("AT+SRDSEND=255,\"X:");
     mySerial.print(analogRead(A7));
+    mySerial.print(":Y:");
+    mySerial.print(analogRead(A6));
     mySerial.println("\"");
-     
-    if (ledState == LOW)
-      ledState = HIGH;
-    else
-      ledState = LOW;
 
-    digitalWrite(ledPin, ledState);
+    display.clearDisplay();
+    display.setCursor(0,5);
+    display.print("X: ");
+
+    display.print(analogRead(A7));
+    display.setCursor(0,25);
+    display.print("Y: ");
+    display.print(analogRead(A6));
+
+    display.setCursor(0,45);
+    display.print("D8/5/4: ");
+    display.print(digitalRead(8));
+    display.print("/");
+    display.print(digitalRead(5));
+    display.print("/");
+    display.print(digitalRead(4));
+
+
+    display.display();
+
   }
 }
 
-void draw(void) {
-  // graphic commands to redraw the complete screen should be placed here  
-  u8g.setFont(u8g_font_unifont);
-  //u8g.setFont(u8g_font_osb21);
-  u8g.drawStr( 0, 22, "Hello World!");
-}
+
+
+
+

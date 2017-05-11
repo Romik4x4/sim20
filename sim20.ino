@@ -10,14 +10,18 @@
 #define OLED_DC    11
 #define OLED_CS    12
 #define OLED_RESET 13
+
 Adafruit_SSD1306 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 
 #include <SoftwareSerial.h>
 
-SoftwareSerial mySerial(3,2); // RX-3, TX-2
+SoftwareSerial sSerial(3,2); // RX-3, TX-2
 
 long previousMillis = 0;        
 long interval = 100;            
+
+boolean startXY = false;
+boolean d8 = false;
 
 void setup() {
 
@@ -29,13 +33,11 @@ void setup() {
   display.clearDisplay();
   display.display();
 
-  mySerial.begin(115200);
-  // mySerial.println("AT+SRDUART=2,0");
+  sSerial.begin(9600);
 
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0,0);
-  display.print("SIM20 Module.");
   display.display();
 
 }
@@ -48,13 +50,32 @@ void loop()
   if (currentMillis - previousMillis > interval) {
     previousMillis = currentMillis;
 
-    mySerial.print("AT+SRDSEND=255,\"X:");
-    mySerial.print(analogRead(A7));
-    mySerial.print(":Y:");
-    mySerial.print(analogRead(A6));
-    mySerial.println("\"");
+    if (digitalRead(5) == 1) {
+      startXY = true;
+    } 
+
+    if (digitalRead(8) == 1) {
+      d8 = !d8;
+    } 
+
+    if (digitalRead(4) == 1) {
+      startXY = false;
+    } 
+
+    if (startXY) {
+      sSerial.print("AT+SRDSEND=255,\"X:");
+      sSerial.print(analogRead(A7));
+      sSerial.print(":Y:");
+      sSerial.print(analogRead(A6));
+      sSerial.print(":D:");
+      if (d8) sSerial.print("1");
+      if (!d8) sSerial.print("0");
+      sSerial.println("\"");        
+    }
 
     display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
     display.setCursor(0,5);
     display.print("X: ");
 
@@ -63,19 +84,23 @@ void loop()
     display.print("Y: ");
     display.print(analogRead(A6));
 
-    display.setCursor(0,45);
-    display.print("D8/5/4: ");
-    display.print(digitalRead(8));
-    display.print("/");
-    display.print(digitalRead(5));
-    display.print("/");
-    display.print(digitalRead(4));
-
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0,50);
+    if (startXY) {
+      display.print("Sending...");
+    } 
+    else {
+      display.print("Wait to start.");
+    }
 
     display.display();
 
   }
 }
+
+
+
 
 
 

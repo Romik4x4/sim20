@@ -84,6 +84,11 @@ void loop()
     display.print("Y: ");
     display.print(analogRead(A6));
 
+    display.setTextSize(3);
+    display.setTextColor(WHITE);
+    display.setCursor(90,10);
+    display.print(d8);
+    
     display.setTextSize(1);
     display.setTextColor(WHITE);
     display.setCursor(0,50);
